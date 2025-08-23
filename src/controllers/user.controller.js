@@ -18,7 +18,8 @@ async function registerUser(req,res) {
 
     const user = await UserModel.create({
         fullName : {
-            firstName,lastName
+            firstName,
+            lastName
         },
          email ,
          password : hashPassword 
@@ -31,19 +32,56 @@ async function registerUser(req,res) {
 
 
     res.status(200).json({
-        message :"User Registered Sucessfullt",
+        message :"User Registered Sucessfully",
         user :{
            email :user.email,
            _id : user._id,
-           fullName : fullName
+           Fullname : user.fullName
         }
     })
+
    
+}
+
+async function UserLogin(req,res){
+    const {email,password} =req.body;
+
+    const user = await UserModel.findOne({
+        email
+    })
+
+    if(!user){
+        res.status(400).json({
+            message : "Invalid Email Or Password"
+        })
+    }
+    const isPassword = await becrypt.compare(password,user.password)
+
+
+    if(!isPassword){
+        res.status(400).json({
+            message : "Invalid Emial Or Password"
+        })
+    }
+
+    const token = jwt.sign({user:user._id},process.env.JWT_SECRET)
+    res.cookie('cookie',token)
+
+    
+    res.status(200).json({
+        message :"User Login Sucessfully",
+        user :{
+           email :user.email,
+           _id : user._id,
+           fullName : user.fullName
+        }
+    })
 }
 
 
 
 
 module.exports = {
-    registerUser
+    registerUser,
+    UserLogin
 }
