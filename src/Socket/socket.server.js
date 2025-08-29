@@ -2,9 +2,9 @@ const { Server } = require("socket.io");
 const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
 const userModel = require("../models/user.model");
-const aiService  = require('../services/ai.service')
-const messageModel = require('../models/message.model')
-const {createMemory} = require('../services/vector.service')
+const aiService = require("../services/ai.service");
+const messageModel = require("../models/message.model");
+const { createMemory , queryMemory } = require("../services/vector.service");
 
 function initSocketServer(httpServer) {
   const io = new Server(httpServer, {});
@@ -29,49 +29,73 @@ function initSocketServer(httpServer) {
   });
 
   io.on("connection", (socket) => {
-   socket.on("ai-message", async (messagePayLoad)=> {
-      
-      await messageModel.create({
-        chat : messagePayLoad.chat,
+    socket.on("ai-message", async (messagePayLoad) => {
+
+
+
+      const message = await messageModel.create({
+        chat: messagePayLoad.chat,
         user: socket.user._id,
-        content : messagePayLoad.content,
-        role : "user"
-      })
- 
-      const responseVectors = await aiService.gernateVector(response)
+        content: messagePayLoad.content,
+        role: "user",
+      });
+
+      const Vectors = await aiService.gernateVector(messagePayLoad.content);
+
       await createMemory({
-        vectors,
-        messageId:"893948849",
-        metadata:{
-          chat : messagePayLoad.chat,
-          user: socket.user.id
-        }
-      })
-      const chatHistory = (await messageModel.find({
-        chat : messagePayLoad.chat
-      }).sort({createdAT : -1}).limit(20).lean()).reverse()
-      
-      const response = await aiService.generateResponse(chatHistory.map(itme =>{
-        return {
-          role : itme.role,
-          parts: [{text : itme.content}]
+        Vectors,
+        messageId: message._id,
+        metadata: {
+          chat: messagePayLoad.chat,
+          user: socket.user._id,
+          text :messagePayLoad.content
+
+        },
+      });
+
+      const chatHistory = (
+        await messageModel
+          .find({
+            chat: messagePayLoad.chat,
+          })
+          .sort({ createdAT: -1 })
+          .limit(20)
+          .lean()
+      ).reverse();
+
+      const response = await aiService.generateResponse(chatHistory.map(item=> {
+           return {
+            role: itme.role,
+            parts: [{ text: itme.content }],
           
         }
-      }))
+    }));
 
-
-       await messageModel.create({
-        chat : messagePayLoad.chat,
+      const responseMessages = await messageModel.create({
+        chat: messagePayLoad.chat,
         user: socket.user._id,
-        content : response,
-        role : "model"
-      })
-      socket.emit('ai-response', {
-        content:response,
-        chat:messagePayLoad.chat
-      })
-      console.log("Ai-Message",response);
-   })
+        content: response,
+        role: "model",
+      });
+
+      const responseVectors = await aiService.gernateVector(response);
+
+      await createMemory({
+        Vectors: responseVectors,
+        messageId : responseMessages._id,
+        metadata : {
+           chat: messagePayLoad.chat,
+           user: socket.user.id,
+           text : response
+        }
+      });
+
+      socket.emit("ai-response", {
+        content: response,
+        chat: messagePayLoad.chat,
+      });
+      console.log("Ai-Message", response);
+    });
   });
 }
 
