@@ -6,7 +6,7 @@ const cohortChatGtpIndex = pc.Index('gtp-clone')
 
 async function createMemory({vectors,metadata,messageId}){
    await cohortChatGtpIndex.upsert([{
-    id:messageId,
+    id:messageId.toString(),
     values: vectors,
     metadata
    }])
