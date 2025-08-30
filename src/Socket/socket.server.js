@@ -12,11 +12,15 @@ function initSocketServer(httpServer) {
   io.use(async (socket, next) => {
     try {
       const cookies = cookie.parse(socket.handshake.headers?.cookie || "");
-      if (!cookies.token) return next(new Error("Authentication error : No Token Provided"));
+      if (!cookies.token) {
+        return next(new Error("Authentication error : No Token Provided"));
+      }
 
       const decoded = jwt.verify(cookies.token, process.env.JWT_SECRET);
       const user = await userModel.findById(decoded.id);
-      if (!user) return next(new Error("Authentication Error : User not found"));
+      if (!user) {
+        return next(new Error("Authentication Error : User not found"));
+      }
 
       socket.user = user;
       next();
@@ -27,96 +31,76 @@ function initSocketServer(httpServer) {
 
   io.on("connection", (socket) => {
     socket.on("ai-message", async (messagePayLoad) => {
+      let response = null;
+
       try {
-        const message = await messageModel.create({
-          chat: messagePayLoad.chat,
-          user: socket.user._id,
-          content: messagePayLoad.content,
-          role: "user",
-        });
+        // Step 1: Create the message and generate user embedding concurrently
+        const [message, userEmbedding] = await Promise.all([
+          messageModel.create({
+            chat: messagePayLoad.chat,
+            user: socket.user._id,
+            content: messagePayLoad.content,
+            role: "user",
+          }),
+          aiService.gernateVector(messagePayLoad.content), // keeping original service call
+        ]);
 
-       
-        const userEmbedding = await aiService.gernateVector(messagePayLoad.content);
-
-        const memory = await queryMemory({
-          queryVector:userEmbedding,
-          limit:3,
-          metadata : {}
-        })
-        if (!Array.isArray(userEmbedding) || !userEmbedding.every((n) => typeof n === "number")) {
-          throw new Error("Embedding generation failed for user message");
-        }
-
-       
+        // Step 2: Create memory (vector embedding) for the user message
         await createMemory({
-          vectors: userEmbedding, 
+          vectors: userEmbedding,
           messageId: message._id,
           metadata: {
-            chat: messagePayLoad.chat,
+            chat: String(messagePayLoad.chat),
             user: String(socket.user._id),
-            text: messagePayLoad.content,
+            text: String(messagePayLoad.content || ""),
             role: "user",
           },
         });
 
-      console.log(memory);
-        const chatHistory = (
-          await messageModel
+        // Step 3: Query memory and fetch chat history concurrently
+        const userId = String(socket.user._id);
+
+        const [memory, chatHistory] = await Promise.all([
+          queryMemory({
+            queryVector: userEmbedding,
+            limit: 3,
+            // CRITICAL: Pinecone filter must use operator form like $eq
+            metadata: {
+              user: { $eq: userId },
+            },
+            includeMetadata: true, // ensure metadata is returned with matches
+          }),
+          messageModel
             .find({ chat: messagePayLoad.chat })
-            .sort({ createdAt: -1 }) 
+            .sort({ createdAt: -1 })
             .limit(20)
             .lean()
-        ).reverse();
+            .then((messages) => messages.reverse()),
+        ]);
 
-        
-        const stm = chatHistory.map(item =>{
-          return { 
-             role: item.role, 
-             parts: [{ text: item.content }], 
-          }
-        });
-     
+        // Step 4: Prepare STM and LTM
+        const stm = chatHistory.map((item) => ({
+          role: item.role,
+          parts: [{ text: item.content }],
+        }));
 
         const ltm = [
           {
-            role : "user",
-            parts : [{text :`
-              
-              these are some previous messages from the chat, use them to gernate a response
-              ${memory.map(item=>item.metadata.text).join("\n")}
-              ` }]
-          }
-        ]
-        console.log(ltm[0]);
-         console.log(stm)
-        const response = await aiService.generateResponse([...ltm,...stm]);
-
-      
-        const responseMessage = await messageModel.create({
-          chat: messagePayLoad.chat,
-          user: socket.user._id,
-          content: response,
-          role: "model",
-        });
-
-        
-        const modelEmbedding = await aiService.gernateVector(response);
-        if (!Array.isArray(modelEmbedding) || !modelEmbedding.every((n) => typeof n === "number")) {
-          throw new Error("Embedding generation failed for model response");
-        }
-
-        await createMemory({
-          vectors: modelEmbedding, 
-          messageId: responseMessage._id,
-          metadata: {
-            chat: messagePayLoad.chat,
-            user: String(socket.user._id), 
-            text: response,
-            role: "model",
+            role: "user",
+            parts: [
+              {
+                text: `
+these are some previous messages from the chat, use them to gernate a response
+${(Array.isArray(memory) ? memory : []).map((m) => m.metadata?.text || "").join("\n")}
+                `.trim(),
+              },
+            ],
           },
-        });
+        ];
 
-        
+        response = await aiService.generateResponse([...ltm, ...stm]);
+
+        // Step 6: Emit the AI response to the client
         socket.emit("ai-response", {
           content: response,
           chat: messagePayLoad.chat,
@@ -129,6 +113,33 @@ function initSocketServer(httpServer) {
           chat: messagePayLoad.chat,
           error: true,
         });
+      } finally {
+        try {
+          if (response) {
+            const [responseMessage, modelEmbedding] = await Promise.all([
+              messageModel.create({
+                chat: messagePayLoad.chat,
+                user: socket.user._id,
+                content: response,
+                role: "model",
+              }),
+              aiService.gernateVector(response),
+            ]);
+
+            await createMemory({
+              vectors: modelEmbedding,
+              messageId: responseMessage._id,
+              metadata: {
+                chat: String(messagePayLoad.chat),
+                user: String(socket.user._id),
+                text: String(response || ""),
+                role: "model",
+              },
+            });
+          }
+        } catch (error) {
+          console.error("Error creating response message/embedding:", error);
+        }
       }
     });
   });
