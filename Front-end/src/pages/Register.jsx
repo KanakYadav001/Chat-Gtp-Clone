@@ -1,9 +1,9 @@
 import React, {useState} from 'react'
 import api from '../api'
 import {useNavigate, Link} from 'react-router-dom'
-import styles from './Register.module.css' // Using CSS module
+import styles from './Register.module.css' 
 
-const Register = () => {
+const Register = ({ onAuthSuccess }) => {
   const [first,setFirst] = useState('')
   const [last,setLast] = useState('')
   const [email,setEmail] = useState('')
@@ -17,7 +17,8 @@ const Register = () => {
     setError(null)
     setLoading(true)
     try{
-      await api.post('/auth/register',{fullName:{firstName:first,lastName:last},email,password})
+      const data = await api.post('/auth/register',{fullName:{firstName:first,lastName:last},email,password})
+      onAuthSuccess(data.user); // Update the user state in App.jsx
       nav('/')
     }
     catch(err){

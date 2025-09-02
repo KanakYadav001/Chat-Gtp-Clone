@@ -6,15 +6,15 @@ import styles from './Chat.module.css'
 import api from '../api'
 
 const Message = ({text, from='ai'}) => (
+  // The avatar div has been removed from here
   <div className={`${styles.message} ${from=== 'ai' ? styles.ai : styles.user}`}>
-    <div className={styles.avatar} aria-hidden />
     <div className={styles.bubble}>{text}</div>
   </div>
 )
 
-const Chat = ({ theme, toggleTheme }) => {
+const Chat = ({ theme, toggleTheme, user }) => {
   const [messages, setMessages] = useState([
-    {id: 's1', from: 'ai', text: 'Hello! How can I assist you today?'}
+   
   ])
   const [input, setInput] = useState('')
   const [chatId, setChatId] = useState(null);
@@ -73,8 +73,18 @@ const Chat = ({ theme, toggleTheme }) => {
           <button onClick={toggleTheme} className={styles.themeToggle}>
             {theme === 'dark' ? '🌞' : '🌜'}
           </button>
-          <Link to="/login" className={styles.authBtn}>Login</Link>
-          <Link to="/register" className={styles.authBtnPrimary}>Sign up</Link>
+          
+          {user ? (
+            <div className={styles.userProfile}>
+              {user.Fullname.firstName.charAt(0)}
+            </div>
+          ) : (
+            <>
+              <Link to="/login" className={styles.authBtn}>Login</Link>
+              <Link to="/register" className={styles.authBtnPrimary}>Sign up</Link>
+            </>
+          )}
+
         </div>
       </header>
 

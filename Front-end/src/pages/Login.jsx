@@ -3,7 +3,7 @@ import api from '../api'
 import {useNavigate, Link} from 'react-router-dom'
 import styles from './Login.module.css'
 
-const Login = () => {
+const Login = ({ onAuthSuccess }) => {
   const [email,setEmail] = useState('')
   const [password,setPassword] = useState('')
   const [loading,setLoading] = useState(false)
@@ -15,7 +15,8 @@ const Login = () => {
     setError(null)
     setLoading(true)
     try{
-      await api.post('/auth/login',{email,password})
+      const data = await api.post('/auth/login',{email,password})
+      onAuthSuccess(data.user); // Update the user state in App.jsx
       nav('/')
     }
     catch(err){
