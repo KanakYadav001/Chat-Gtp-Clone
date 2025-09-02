@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { io } from 'socket.io-client'
 import Logo from '../assets/logo.svg'
 import styles from './Chat.module.css'
+import api from '../api'
 
 const Message = ({text, from='ai'}) => (
   <div className={`${styles.message} ${from=== 'ai' ? styles.ai : styles.user}`}>
@@ -16,10 +17,22 @@ const Chat = () => {
     {id: 's1', from: 'ai', text: 'Hello! How can I assist you today?'}
   ])
   const [input, setInput] = useState('')
+  const [chatId, setChatId] = useState(null);
   const socketRef = useRef(null)
   const nav = useNavigate()
 
   useEffect(()=>{
+    // Create a new chat when the component mounts
+    const createNewChat = async () => {
+      try {
+        const response = await api.post('/chat', { title: 'New Chat' });
+        setChatId(response.chat._id);
+      } catch (error) {
+        console.error('Failed to create chat', error);
+      }
+    };
+    createNewChat();
+
     // connect to socket.io (dev proxy handles same origin)
     const s = io({ withCredentials: true })
     socketRef.current = s
@@ -37,9 +50,8 @@ const Chat = () => {
   },[])
 
   function sendMessage(){
-    if(!input.trim()) return
+    if(!input.trim() || !chatId) return
     const content = input.trim()
-    const chatId = null // using null for now; backend can infer or you can create chats later
     setMessages(prev => [...prev, {id: `u${Date.now()}`, from: 'user', text: content}])
     setInput('')
     if(socketRef.current && socketRef.current.connected){
