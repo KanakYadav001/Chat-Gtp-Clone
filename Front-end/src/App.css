@@ -1,3 +1,14 @@
+/* Add these new styles at the top */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  height: 100%;
+  width: 100%;
+}
+
+/* --- Keep the rest of your CSS below --- */
+
 :root {
   --background-dark: #0f1720;
   --text-dark: #fff;

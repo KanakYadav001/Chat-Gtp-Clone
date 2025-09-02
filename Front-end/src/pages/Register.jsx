@@ -1,7 +1,7 @@
 import React, {useState} from 'react'
 import api from '../api'
 import {useNavigate, Link} from 'react-router-dom'
-import styles from './Register.module.css'
+import styles from './Register.module.css' // Using CSS module
 
 const Register = () => {
   const [first,setFirst] = useState('')
@@ -18,7 +18,7 @@ const Register = () => {
     setLoading(true)
     try{
       await api.post('/auth/register',{fullName:{firstName:first,lastName:last},email,password})
-      nav('/login')
+      nav('/')
     }
     catch(err){
       setError(err.message || 'Register failed')
@@ -29,15 +29,18 @@ const Register = () => {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <h2 className={styles.title}>Create account</h2>
+        <div className={styles.header}>
+          <h2 className={styles.title}>Create an account</h2>
+        </div>
+
         <form className={styles.form} onSubmit={handleRegister}>
-          <div className={styles.row}>
+          <div className={styles.fieldGroup}>
             <div className={styles.field}>
-              <label className={styles.label}>First name</label>
+              <label className={styles.label}>First Name</label>
               <input className={styles.input} value={first} onChange={e=>setFirst(e.target.value)} type="text" placeholder="First name" />
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>Last name</label>
+              <label className={styles.label}>Last Name</label>
               <input className={styles.input} value={last} onChange={e=>setLast(e.target.value)} type="text" placeholder="Last name" />
             </div>
           </div>
@@ -56,9 +59,12 @@ const Register = () => {
 
           <div className={styles.actions}>
             <button disabled={loading} className={styles.btnPrimary}>{loading? 'Registering...':'Register'}</button>
-            <Link to="/login" className={styles.btnSecondary}>Already have an account?</Link>
           </div>
         </form>
+
+        <div className={styles.footer}>
+          Already have an account? <Link to="/login">Login</Link>
+        </div>
       </div>
     </div>
   )

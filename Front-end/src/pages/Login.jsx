@@ -49,7 +49,9 @@ const Login = () => {
           </div>
         </form>
 
-        <div className={styles.footer}>By continuing you agree to our <a href="#">Terms</a>.</div>
+        <div className={styles.footer}>
+          Don't have an account? <Link to="/register">Sign up</Link>
+        </div>
       </div>
     </div>
   )
