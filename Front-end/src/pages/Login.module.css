@@ -1,47 +1,31 @@
 /* Mobile-first login styles */
-:global(
-  /* reset */
-  *,
-  *::before,
-  *::after
-){
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-:global(html, body, #root){
-  height:100%;
-  width:100%;
-  margin:0;
-  padding:0;
-  background:#0f1720;
-  overflow-x:hidden;
-}
 .container{
-  width:100vw;
-  min-height:100vh;
+  height: 100vh; /* Changed from min-height to height */
+  overflow: hidden; /* Prevents scrolling */
   display:flex;
   align-items:center;
   justify-content:center;
   padding:20px;
-  background: transparent;
+  background: #0f1720;
   color: #fff;
   font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 }
 .card{
   width:100%;
-  max-width:420px;
-  background: rgba(255,255,255,0.02);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
   border: none;
-  padding:18px;
-  border-radius:12px;
+  padding:24px;
+  border-radius:0;
   box-shadow: none;
 }
 .header{
   display:flex;
   align-items:center;
-  justify-content:space-between;
-  margin-bottom:12px;
+  justify-content:flex-start;
+  margin-bottom:18px;
 }
 .title{font-size:20px;margin:0;font-weight:700}
 .form{display:flex;flex-direction:column;gap:12px}
@@ -58,15 +42,15 @@
 
 /* Desktop tweaks */
 @media(min-width:768px){
-  .card{max-width:420px;padding:24px}
+  .card{
+    max-width:450px; /* Adjusted max-width for a cleaner look */
+    border-radius: 12px; /* Added border-radius for desktop */
+    padding:36px;
+    height: auto; /* Allow height to be auto on larger screens */
+  }
   .title{font-size:22px}
   .input{padding:12px}
   .actions{flex-direction:row;gap:12px}
   .actions .btnPrimary{flex:1}
   .actions .btnSecondary{display:none}
-}
-
-/* Remove side padding on wide screens so background touches viewport edges */
-@media(min-width:1024px){
-  .container{padding:0}
 }

@@ -1,6 +1,7 @@
 /* Mobile-first register styles (consistent with login) */
 .container{
-  min-height:100vh;
+  height: 100vh; /* Changed from min-height to height */
+  overflow: hidden; /* Prevents scrolling */
   display:flex;
   align-items:center;
   justify-content:center;
@@ -11,8 +12,6 @@
 }
 .card{
   width:100%;
-  max-width:100%;
-  min-height:100vh;
   display:flex;
   flex-direction:column;
   justify-content:center;
@@ -49,7 +48,12 @@
 
 /* Desktop tweaks */
 @media(min-width:768px){
-  .card{max-width:900px;padding:36px}
+  .card{
+    max-width:450px; /* Adjusted max-width for a cleaner look */
+    border-radius: 12px; /* Added border-radius for desktop */
+    padding:36px;
+    height: auto; /* Allow height to be auto on larger screens */
+  }
   .title{font-size:22px}
   .input{padding:12px}
   .actions{flex-direction:row;gap:12px}
