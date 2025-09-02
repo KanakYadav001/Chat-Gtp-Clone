@@ -12,7 +12,7 @@ const Message = ({text, from='ai'}) => (
   </div>
 )
 
-const Chat = () => {
+const Chat = ({ theme, toggleTheme }) => {
   const [messages, setMessages] = useState([
     {id: 's1', from: 'ai', text: 'Hello! How can I assist you today?'}
   ])
@@ -22,7 +22,6 @@ const Chat = () => {
   const nav = useNavigate()
 
   useEffect(()=>{
-    // Create a new chat when the component mounts
     const createNewChat = async () => {
       try {
         const response = await api.post('/chat', { title: 'New Chat' });
@@ -32,8 +31,7 @@ const Chat = () => {
       }
     };
     createNewChat();
-
-    // connect to socket.io (dev proxy handles same origin)
+    
     const s = io({ withCredentials: true })
     socketRef.current = s
 
@@ -57,7 +55,6 @@ const Chat = () => {
     if(socketRef.current && socketRef.current.connected){
       socketRef.current.emit('ai-message',{chat: chatId, content})
     } else {
-      // optimistic fallback: call simple API (not implemented) or show error
       setMessages(prev => [...prev, {id: `e${Date.now()}`, from: 'ai', text: 'Unable to reach server.'}])
     }
   }
@@ -73,6 +70,9 @@ const Chat = () => {
         </div>
 
         <div className={styles.actions}>
+          <button onClick={toggleTheme} className={styles.themeToggle}>
+            {theme === 'dark' ? '🌞' : '🌜'}
+          </button>
           <Link to="/login" className={styles.authBtn}>Login</Link>
           <Link to="/register" className={styles.authBtnPrimary}>Sign up</Link>
         </div>

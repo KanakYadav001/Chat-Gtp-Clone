@@ -1,0 +1,43 @@
+:root {
+  --background-dark: #0f1720;
+  --text-dark: #fff;
+  --header-bg-dark: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  --border-dark: rgba(255,255,255,0.03);
+  --bubble-ai-bg-dark: #111827;
+  --bubble-ai-text-dark: #e5e7eb;
+  --input-bg-dark: #0b1220;
+
+  --background-light: #f0f2f5;
+  --text-light: #000;
+  --header-bg-light: #fff;
+  --border-light: #ddd;
+  --bubble-ai-bg-light: #e4e6eb;
+  --bubble-ai-text-light: #000;
+  --input-bg-light: #fff;
+}
+
+.dark-theme {
+  --background: var(--background-dark);
+  --text-color: var(--text-dark);
+  --header-bg: var(--header-bg-dark);
+  --border-color: var(--border-dark);
+  --bubble-ai-bg: var(--bubble-ai-bg-dark);
+  --bubble-ai-text: var(--bubble-ai-text-dark);
+  --input-bg: var(--input-bg-dark);
+}
+
+.light-theme {
+  --background: var(--background-light);
+  --text-color: var(--text-light);
+  --header-bg: var(--header-bg-light);
+  --border-color: var(--border-light);
+  --bubble-ai-bg: var(--bubble-ai-bg-light);
+  --bubble-ai-text: var(--bubble-ai-text-light);
+  --input-bg: var(--input-bg-light);
+}
+
+.app-container {
+  background-color: var(--background);
+  color: var(--text-color);
+  min-height: 100vh;
+}

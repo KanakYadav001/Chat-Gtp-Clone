@@ -4,8 +4,8 @@
   flex-direction:column;
   min-height:100vh;
   padding-bottom:env(safe-area-inset-bottom);
-  background:#0f1720; /* dark slate */
-  color:#fff;
+  background: var(--background);
+  color: var(--text-color);
   font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 }
 .header{
@@ -14,8 +14,8 @@
   gap:12px;
   justify-content:space-between;
   padding:14px 16px;
-  background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
-  border-bottom:1px solid rgba(255,255,255,0.03);
+  background: var(--header-bg);
+  border-bottom:1px solid var(--border-color);
 }
 .header h1{
   font-size:16px;
@@ -28,7 +28,7 @@
 .back{
   background:transparent;
   border:none;
-  color:#fff;
+  color: var(--text-color);
   font-size:18px;
 }
 
@@ -70,9 +70,9 @@
 }
 
 .ai .bubble{
-  background:#111827; /* darker bubble */
-  color:#e5e7eb;
-  border:1px solid rgba(255,255,255,0.03);
+  background: var(--bubble-ai-bg);
+  color: var(--bubble-ai-text);
+  border:1px solid var(--border-color);
 }
 
 .user{
@@ -90,14 +90,14 @@
   gap:8px;
   padding:10px 12px;
   align-items:center;
-  border-top:1px solid rgba(255,255,255,0.02);
+  border-top:1px solid var(--border-color);
   background:linear-gradient(0deg, rgba(0,0,0,0.15), transparent);
 }
 .input{
   flex:1 1 auto;
-  background:#0b1220;
-  color:#fff;
-  border:1px solid rgba(255,255,255,0.03);
+  background: var(--input-bg);
+  color: var(--text-color);
+  border:1px solid var(--border-color);
   padding:10px 12px;
   border-radius:999px;
   outline:none;
@@ -105,7 +105,7 @@
 .attach, .send{
   background:linear-gradient(180deg,#0b1220,#0b1220);
   border:none;
-  color:#fff;
+  color: var(--text-color);
   padding:8px 10px;
   border-radius:50%;
   display:inline-flex;
@@ -123,7 +123,7 @@
   gap:8px;
   padding:8px 6px 12px;
   background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
-  border-top:1px solid rgba(255,255,255,0.02);
+  border-top:1px solid var(--border-color);
 }
 
 .navItem{
@@ -137,9 +137,7 @@
 
 /* Larger screens (website view) */
 @media(min-width:1080px){
-  /* Desktop: header / messages / input rows, left sidebar */
   .container{
-    /* cover full viewport on desktop */
     position:fixed;
     inset:0;
     width:100vw;
@@ -151,10 +149,9 @@
     grid-template-rows:auto 1fr auto;
     gap:0;
     z-index:1000;
-    background:#0f1720;
+    background: var(--background);
   }
 
-  /* header spans full width and stays at top */
   .header{
     grid-column:1 / -1;
     grid-row:1;
@@ -162,10 +159,9 @@
     position:sticky;
     top:0;
     z-index:30;
-    background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+    background: var(--header-bg);
   }
 
-  /* left vertical nav/sidebar occupies full height (rows 1..end) */
   .bottomNav{
     grid-column:1 / 2;
     grid-row:1 / -1;
@@ -175,7 +171,7 @@
     gap:20px;
     padding:24px 8px;
     background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
-    border-right:1px solid rgba(255,255,255,0.02);
+    border-right:1px solid var(--border-color);
     position:sticky;
     top:0;
     height:100vh;
@@ -185,7 +181,6 @@
   .navItem{font-size:13px}
   .navItem span{font-size:11px;margin-top:6px}
 
-  /* messages sit in middle row, scroll independently */
   .messages{
     grid-column:2 / -1;
     grid-row:2;
@@ -194,7 +189,6 @@
     overflow:auto;
   }
 
-  /* input row in its own bottom row so it doesn't overlap messages */
   .inputRow{
     grid-column:2 / -1;
     grid-row:3;
@@ -204,7 +198,6 @@
     width:calc(100% - 48px);
   }
 
-  /* ensure messages have room for the input row (avoid overlap) */
   .messages{padding-bottom:120px}
 
   .item{padding:16px}
@@ -213,4 +206,11 @@
   .bubble{font-size:15px}
   .header h1{font-size:18px}
   .actions{margin-left:0}
+  .themeToggle {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 24px;
+  }
 }
