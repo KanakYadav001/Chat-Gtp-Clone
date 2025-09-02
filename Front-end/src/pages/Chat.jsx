@@ -1,111 +1,177 @@
-import React, {useEffect, useRef, useState} from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { io } from 'socket.io-client'
-import Logo from '../assets/logo.svg'
-import styles from './Chat.module.css'
-import api from '../api'
+import React, { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { io } from 'socket.io-client';
+import Logo from '/src/assets/logo.svg';
+import styles from '/src/pages/Chat.module.css';
+import api from '/src/api.js';
 
-const Message = ({text, from='ai'}) => (
-  // The avatar div has been removed from here
-  <div className={`${styles.message} ${from=== 'ai' ? styles.ai : styles.user}`}>
+// Message component remains the same
+const Message = ({ text, from = 'ai' }) => (
+  <div className={`${styles.message} ${from === 'ai' ? styles.ai : styles.user}`}>
     <div className={styles.bubble}>{text}</div>
   </div>
-)
+);
 
 const Chat = ({ theme, toggleTheme, user }) => {
-  const [messages, setMessages] = useState([
-   
-  ])
-  const [input, setInput] = useState('')
-  const [chatId, setChatId] = useState(null);
-  const socketRef = useRef(null)
-  const nav = useNavigate()
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [chats, setChats] = useState([]);
+  const [activeChatId, setActiveChatId] = useState(null);
+  const [isHistoryVisible, setIsHistoryVisible] = useState(false);
+  const socketRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
-  useEffect(()=>{
-    const createNewChat = async () => {
-      try {
-        const response = await api.post('/chat', { title: 'New Chat' });
-        setChatId(response.chat._id);
-      } catch (error) {
-        console.error('Failed to create chat', error);
-      }
-    };
-    createNewChat();
-    
-    const s = io({ withCredentials: true })
-    socketRef.current = s
+  // Function to smoothly scroll to the latest message
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
-    s.on('connect_error', (err)=> console.error('socket connect error', err))
-    s.on('ai-response', (payload)=>{
-      if(payload && payload.content){
-        setMessages(prev => [...prev, {id: `r${Date.now()}`, from: 'ai', text: payload.content}])
-      }
-    })
+  useEffect(scrollToBottom, [messages]);
 
-    return ()=>{
-      s.disconnect()
-    }
-  },[])
-
-  function sendMessage(){
-    if(!input.trim() || !chatId) return
-    const content = input.trim()
-    setMessages(prev => [...prev, {id: `u${Date.now()}`, from: 'user', text: content}])
-    setInput('')
-    if(socketRef.current && socketRef.current.connected){
-      socketRef.current.emit('ai-message',{chat: chatId, content})
+  // Main effect to handle user login, history fetching, and socket connection
+  useEffect(() => {
+    if (user) {
+      api.get('/chat/history')
+        .then(data => {
+          setChats(data);
+          if (data.length > 0) {
+            selectChat(data[0]._id);
+          } else {
+            createNewChat(); // Create a new chat if history is empty
+          }
+        })
+        .catch(err => {
+          console.error('Failed to fetch chat history', err);
+          createNewChat();
+        });
     } else {
-      setMessages(prev => [...prev, {id: `e${Date.now()}`, from: 'ai', text: 'Unable to reach server.'}])
+      setMessages([{ id: 's1', from: 'ai', text: 'Hello! Please log in to start chatting and save your history.' }]);
     }
-  }
 
-  function onKeyDown(e){ if(e.key === 'Enter'){ e.preventDefault(); sendMessage() }}
+    const s = io({ withCredentials: true });
+    socketRef.current = s;
+
+    s.on('connect_error', (err) => console.error('socket connect error', err));
+    s.on('ai-response', (payload) => {
+      if (payload && payload.content && payload.chat === activeChatId) {
+        setMessages(prev => [...prev.filter(m => m.id !== 'thinking'), { id: `r${Date.now()}`, from: 'ai', text: payload.content }]);
+      }
+    });
+
+    return () => s.disconnect();
+  }, [user]);
+
+  // Function to switch to a different chat
+  const selectChat = async (chatId) => {
+    if (activeChatId === chatId) return;
+    try {
+      const fetchedMessages = await api.get(`/chat/${chatId}/messages`);
+      const formattedMessages = fetchedMessages.map(msg => ({
+        id: msg._id,
+        from: msg.role === 'user' ? 'user' : 'ai',
+        text: msg.content,
+      }));
+      setMessages(formattedMessages);
+      setActiveChatId(chatId);
+      setIsHistoryVisible(false); // Hide sidebar on mobile after selection
+    } catch (error) {
+      console.error('Failed to fetch messages for chat', error);
+    }
+  };
+  
+  // Function to create a new chat session
+  const createNewChat = async () => {
+    try {
+      const response = await api.post('/chat', { title: 'New Conversation' });
+      const newChat = response.chat;
+      setChats(prev => [newChat, ...prev]);
+      setActiveChatId(newChat._id);
+      setMessages([{id: 's1', from: 'ai', text: 'Hello! How can I help you?'}]);
+      setIsHistoryVisible(false);
+    } catch (error) {
+      console.error('Failed to create new chat', error);
+    }
+  };
+
+  // Function to send a message
+  const sendMessage = () => {
+    if (!input.trim() || !activeChatId || !user) return;
+    const content = input.trim();
+    const userMessage = { id: `u${Date.now()}`, from: 'user', text: content };
+    const thinkingMessage = { id: 'thinking', from: 'ai', text: '...' };
+    setMessages(prev => [...prev, userMessage, thinkingMessage]);
+    setInput('');
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('ai-message', { chat: activeChatId, content });
+    } else {
+      setMessages(prev => [...prev.filter(m => m.id !== 'thinking'), { id: `e${Date.now()}`, from: 'ai', text: 'Error: Not connected to server.' }]);
+    }
+  };
+
+  const onKeyDown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
 
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <div className={styles.leftGroup}>
-          <img src={Logo} alt="AI logo" className={styles.logo} />
-          <button className={styles.back} aria-label="back"></button>
-        </div>
+    <div className={`${styles.container} ${isHistoryVisible ? styles.historyVisible : ''}`}>
+      {user && (
+        <aside className={styles.historyNav}>
+            <button onClick={createNewChat} className={styles.newChatBtn}>+ New Chat</button>
+            <nav className={styles.historyList}>
+                {chats.map(chat => (
+                    <div 
+                        key={chat._id} 
+                        className={`${styles.historyItem} ${chat._id === activeChatId ? styles.active : ''}`}
+                        onClick={() => selectChat(chat._id)}
+                    >
+                        {chat.title}
+                    </div>
+                ))}
+            </nav>
+        </aside>
+      )}
 
-        <div className={styles.actions}>
-          <button onClick={toggleTheme} className={styles.themeToggle}>
-            {theme === 'dark' ? '🌞' : '🌜'}
-          </button>
-          
-          {user ? (
-            <div className={styles.userProfile}>
-              {user.Fullname.firstName.charAt(0)}
+      <div className={styles.chatArea}>
+        <header className={styles.header}>
+            <div className={styles.leftGroup}>
+                {user && (
+                    <button className={styles.historyToggle} onClick={() => setIsHistoryVisible(!isHistoryVisible)}>
+                        ☰
+                    </button>
+                )}
+                <img src={Logo} alt="AI logo" className={styles.logo} />
             </div>
-          ) : (
-            <>
-              <Link to="/login" className={styles.authBtn}>Login</Link>
-              <Link to="/register" className={styles.authBtnPrimary}>Sign up</Link>
-            </>
-          )}
 
+            <div className={styles.actions}>
+                <button onClick={toggleTheme} className={styles.themeToggle}>
+                    {theme === 'dark' ? '🌞' : '🌜'}
+                </button>
+                {user ? (
+                    <div className={styles.userProfile}>
+                        {user.Fullname.firstName.charAt(0)}
+                    </div>
+                ) : (
+                    <>
+                        <Link to="/login" className={styles.authBtn}>Login</Link>
+                        <Link to="/register" className={styles.authBtnPrimary}>Sign up</Link>
+                    </>
+                )}
+            </div>
+        </header>
+
+        <main className={styles.messages}>
+            {messages.map(m => (
+                <Message key={m.id} text={m.text} from={m.from} />
+            ))}
+            <div ref={messagesEndRef} />
+        </main>
+
+        <div className={styles.inputRow}>
+            <input disabled={!user} value={input} onChange={e => setInput(e.target.value)} onKeyDown={onKeyDown} className={styles.input} placeholder={user ? "Type your message..." : "Please log in to chat"} />
+            <button disabled={!user} onClick={sendMessage} className={styles.send} aria-label="send">➤</button>
         </div>
-      </header>
-
-      <main className={styles.messages}>
-        {messages.map(m => (
-          <Message key={m.id} text={m.text} from={m.from} />
-        ))}
-      </main>
-
-      <div className={styles.inputRow}>
-        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={onKeyDown} className={styles.input} placeholder="Type your message..." />
-        <button className={styles.attach} aria-label="attach">🖼️</button>
-        <button onClick={sendMessage} className={styles.send} aria-label="send">➤</button>
       </div>
-      <nav className={styles.bottomNav}>
-        <Link to="/chat" className={styles.navItem}>💬<span>Chat</span></Link>
-        <Link to="/history" className={styles.navItem}>🕘<span>History</span></Link>
-        <Link to="/settings" className={styles.navItem}>⚙️<span>Settings</span></Link>
-      </nav>
     </div>
-  )
-}
+  );
+};
 
-export default Chat
+export default Chat;
+

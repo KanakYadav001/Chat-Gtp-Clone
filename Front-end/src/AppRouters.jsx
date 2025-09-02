@@ -5,7 +5,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Chat from './pages/Chat'
 import Settings from './pages/Settings'
-import History from "./pages/History";
+// The separate History page is no longer needed
 
 const AppRouters = ({ theme, toggleTheme, user, onAuthSuccess }) => {
   return (
@@ -17,7 +17,7 @@ const AppRouters = ({ theme, toggleTheme, user, onAuthSuccess }) => {
             <Route path='/register' element={<Register onAuthSuccess={onAuthSuccess} />}/>
             <Route path='/login' element={<Login onAuthSuccess={onAuthSuccess} />}/>
             <Route path='/chat' element={<Chat theme={theme} toggleTheme={toggleTheme} user={user} />}/>
-            <Route path='/history' element={<History/>}/>
+            {/* The /history route is removed */}
             <Route path='/settings' element={<Settings/>}/>
         </Routes>
       </BrowserRouter>
