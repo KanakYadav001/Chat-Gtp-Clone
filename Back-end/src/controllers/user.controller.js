@@ -73,7 +73,8 @@ async function UserLogin(req,res){
         user :{
            email :user.email,
            _id : user._id,
-           fullName : user.fullName
+           // FIX: Changed 'fullName' to 'Fullname' for consistency
+           Fullname : user.fullName 
         }
     })
 }
