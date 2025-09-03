@@ -114,25 +114,54 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px; /* Increased gap */
+  max-width: 800px; /* Set a max-width for the conversation */
+  width: 100%;
+  margin: 0 auto; /* Center the message column */
 }
 
 .message {
   display: flex;
   max-width: 100%;
-  align-items: flex-end;
+  align-items: flex-start; /* Align to the top */
+  gap: 12px; /* Gap between avatar and bubble */
+}
+
+/* Add a generic avatar style */
+.message::before {
+  content: '';
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-color: #4a5568;
+  background-size: cover;
+  background-position: center;
+}
+
+/* Style the AI avatar (using your logo) */
+.ai::before {
+   background-image: url('/src/assets/logo.svg'); /* You can use your logo here */
+   background-color: #111827;
+}
+
+/* Style the User avatar */
+.user::before {
+   /* You can use a generic user icon or a background color */
+   background-color: #3b82f6;
+   /* You could also add a user icon font or SVG here */
 }
 
 .user {
-  justify-content: flex-end;
+  flex-direction: row-reverse; /* Flip the user message layout */
 }
 
 .bubble {
-  padding: 10px 14px;
-  border-radius: 16px;
-  max-width: 80%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  max-width: 90%; /* Let bubble take more space */
   font-size: 15px;
-  line-height: 1.4;
+  line-height: 1.6;
   word-wrap: break-word;
 }
 
@@ -157,6 +186,10 @@
   align-items: center;
   border-top: 1px solid var(--border-color);
   flex-shrink: 0;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .input {
@@ -165,9 +198,13 @@
   color: var(--text-color);
   border: 1px solid var(--border-color);
   padding: 12px 16px;
-  border-radius: 999px;
+  border-radius: 16px; /* A slightly smaller radius can look cleaner */
   outline: none;
   font-size: 15px;
+  font-family: inherit; /* Ensure it uses the same font */
+  line-height: 1.5;
+  max-height: 200px; /* Prevent it from growing indefinitely */
+  overflow-y: auto; /* Add a scrollbar if it gets too tall */
 }
 
 .send {

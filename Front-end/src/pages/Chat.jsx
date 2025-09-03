@@ -4,13 +4,41 @@ import { io } from 'socket.io-client';
 import Logo from '/src/assets/logo.svg';
 import styles from '/src/pages/Chat.module.css';
 import api from '/src/api.js';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'; // A nice dark theme for code
+
 
 // Message component remains the same
-const Message = ({ text, from = 'ai' }) => (
-  <div className={`${styles.message} ${from === 'ai' ? styles.ai : styles.user}`}>
-    <div className={styles.bubble}>{text}</div>
-  </div>
-);
+const Message = ({ text, from = 'ai' }) => {
+  return (
+    <div className={`${styles.message} ${from === 'ai' ? styles.ai : styles.user}`}>
+      <div className={styles.bubble}>
+        <ReactMarkdown
+          children={text}
+          components={{
+            code({ node, inline, className, children, ...props }) {
+              const match = /language-(\w+)/.exec(className || '');
+              return !inline && match ? (
+                <SyntaxHighlighter
+                  children={String(children).replace(/\n$/, '')}
+                  style={vscDarkPlus}
+                  language={match[1]}
+                  PreTag="div"
+                  {...props}
+                />
+              ) : (
+                <code className={className} {...props}>
+                  {children}
+                </code>
+              );
+            },
+          }}
+        />
+      </div>
+    </div>
+  );
+};
 
 const Chat = ({ theme, toggleTheme, user }) => {
   const [messages, setMessages] = useState([]);
@@ -165,7 +193,20 @@ const Chat = ({ theme, toggleTheme, user }) => {
         </main>
 
         <div className={styles.inputRow}>
-            <input disabled={!user} value={input} onChange={e => setInput(e.target.value)} onKeyDown={onKeyDown} className={styles.input} placeholder={user ? "Type your message..." : "Please log in to chat"} />
+            <textarea
+                disabled={!user}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={onKeyDown}
+                className={styles.input}
+                placeholder={user ? "Type your message..." : "Please log in to chat"}
+                rows="1" // Start with a single row
+                style={{ resize: 'none' }} // Disable manual resizing by the user
+                onInput={(e) => {
+                    e.target.style.height = 'auto';
+                    e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
+            />
             <button disabled={!user} onClick={sendMessage} className={styles.send} aria-label="send">➤</button>
         </div>
       </div>
@@ -174,4 +215,3 @@ const Chat = ({ theme, toggleTheme, user }) => {
 };
 
 export default Chat;
-
