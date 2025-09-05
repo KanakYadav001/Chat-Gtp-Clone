@@ -6,10 +6,8 @@ import styles from './Chat.module.css';
 import api from '../api.js';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'; // A nice dark theme for code
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-
-// Message component remains the same
 const Message = ({ text, from = 'ai' }) => {
   return (
     <div className={`${styles.message} ${from === 'ai' ? styles.ai : styles.user}`}>
@@ -48,26 +46,32 @@ const Chat = ({ theme, toggleTheme, user }) => {
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
   const [editingChatId, setEditingChatId] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
   const editInputRef = useRef(null);
+  
+  // Create a ref to hold the current active chat ID.
+  // This helps the socket listener access the latest ID without re-registering.
+  const activeChatIdRef = useRef(activeChatId);
 
-
-  // Function to smoothly scroll to the latest message
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(scrollToBottom, [messages]);
   
-  // Focus input when editing starts
   useEffect(() => {
     if (editingChatId && editInputRef.current) {
         editInputRef.current.focus();
     }
   }, [editingChatId]);
 
-  // Main effect to handle user login, history fetching, and socket connection
+  // Sync the activeChatId state with its ref whenever it changes.
+  useEffect(() => {
+    activeChatIdRef.current = activeChatId;
+  }, [activeChatId]);
+
   useEffect(() => {
     if (user) {
       api.get('/chat/history')
@@ -75,13 +79,13 @@ const Chat = ({ theme, toggleTheme, user }) => {
           setChats(data);
           if (data.length > 0) {
             selectChat(data[0]._id);
-          } else {
-            createNewChat(); // Create a new chat if history is empty
+          } else if (!isCreatingChat) {
+            createNewChat();
           }
         })
         .catch(err => {
           console.error('Failed to fetch chat history', err);
-          createNewChat();
+          if (!isCreatingChat) createNewChat();
         });
     } else {
       setMessages([{ id: 's1', from: 'ai', text: 'Hello! Please log in to start chatting and save your history.' }]);
@@ -91,8 +95,10 @@ const Chat = ({ theme, toggleTheme, user }) => {
     socketRef.current = s;
 
     s.on('connect_error', (err) => console.error('socket connect error', err));
+    
+    // Use the ref inside the listener to ensure it always has the current chat ID.
     s.on('ai-response', (payload) => {
-      if (payload && payload.content && payload.chat === activeChatId) {
+      if (payload && payload.content && payload.chat === activeChatIdRef.current) {
         setMessages(prev => [...prev.filter(m => m.id !== 'thinking'), { id: `r${Date.now()}`, from: 'ai', text: payload.content }]);
       }
     });
@@ -100,7 +106,12 @@ const Chat = ({ theme, toggleTheme, user }) => {
     return () => s.disconnect();
   }, [user]);
 
-  // Function to switch to a different chat
+  useEffect(() => {
+    if (user && chats.length === 0 && !isCreatingChat) {
+      createNewChat();
+    }
+  }, [user, chats, isCreatingChat]);
+
   const selectChat = async (chatId) => {
     if (activeChatId === chatId || editingChatId === chatId) return;
     try {
@@ -112,14 +123,15 @@ const Chat = ({ theme, toggleTheme, user }) => {
       }));
       setMessages(formattedMessages);
       setActiveChatId(chatId);
-      setIsHistoryVisible(false); // Hide sidebar on mobile after selection
+      setIsHistoryVisible(false);
     } catch (error) {
       console.error('Failed to fetch messages for chat', error);
     }
   };
   
-  // Function to create a new chat session
   const createNewChat = async () => {
+    if (isCreatingChat) return;
+    setIsCreatingChat(true);
     try {
       const response = await api.post('/chat', { title: 'New Conversation' });
       const newChat = response.chat;
@@ -129,10 +141,11 @@ const Chat = ({ theme, toggleTheme, user }) => {
       setIsHistoryVisible(false);
     } catch (error) {
       console.error('Failed to create new chat', error);
+    } finally {
+      setIsCreatingChat(false);
     }
   };
 
-    // Function to delete a chat
     const handleDeleteChat = async (chatIdToDelete) => {
         try {
             await api.del(`/chat/${chatIdToDelete}`);
@@ -143,7 +156,8 @@ const Chat = ({ theme, toggleTheme, user }) => {
                 if (updatedChats.length > 0) {
                     selectChat(updatedChats[0]._id);
                 } else {
-                    createNewChat();
+                    setActiveChatId(null);
+                    setMessages([]);
                 }
             }
         } catch (error) {
@@ -151,15 +165,16 @@ const Chat = ({ theme, toggleTheme, user }) => {
         }
     };
 
-    // Function to handle starting the edit process
     const handleStartEditing = (chat) => {
         setEditingChatId(chat._id);
         setEditingTitle(chat.title);
     };
 
-    // Function to save the new title
     const handleSaveTitle = async (chatId) => {
-        if (!editingTitle.trim()) return; // Don't save empty titles
+        if (!editingTitle.trim()) {
+            setEditingChatId(null);
+            return;
+        };
         try {
             const updatedChat = await api.put(`/chat/${chatId}`, { title: editingTitle });
             setChats(chats.map(c => c._id === chatId ? updatedChat.chat : c));
@@ -171,8 +186,6 @@ const Chat = ({ theme, toggleTheme, user }) => {
         }
     };
 
-
-  // Function to send a message
   const sendMessage = () => {
     if (!input.trim() || !activeChatId || !user) return;
     const content = input.trim();
@@ -193,7 +206,7 @@ const Chat = ({ theme, toggleTheme, user }) => {
     <div className={`${styles.container} ${isHistoryVisible ? styles.historyVisible : ''}`}>
       {user && (
         <aside className={styles.historyNav}>
-            <button onClick={createNewChat} className={styles.newChatBtn}>+ New Chat</button>
+            <button onClick={createNewChat} className={styles.newChatBtn} disabled={isCreatingChat}>+ New Chat</button>
             <nav className={styles.historyList}>
             {chats.map(chat => (
                 <div 
@@ -221,11 +234,11 @@ const Chat = ({ theme, toggleTheme, user }) => {
                             <button 
                                 className={styles.deleteBtn}
                                 onClick={(e) => {
-                                    e.stopPropagation(); // Prevent selectChat from firing
+                                    e.stopPropagation();
                                     handleDeleteChat(chat._id);
                                 }}
                             >
-                                &#x1F5D1; {/* Trash can icon */}
+                                &#x1F5D1;
                             </button>
                         </>
                     )}
@@ -278,14 +291,14 @@ const Chat = ({ theme, toggleTheme, user }) => {
                 onKeyDown={onKeyDown}
                 className={styles.input}
                 placeholder={user ? "Type your message..." : "Please log in to chat"}
-                rows="1" // Start with a single row
-                style={{ resize: 'none' }} // Disable manual resizing by the user
+                rows="1"
+                style={{ resize: 'none' }}
                 onInput={(e) => {
                     e.target.style.height = 'auto';
                     e.target.style.height = `${e.target.scrollHeight}px`;
                 }}
             />
-            <button disabled={!user} onClick={sendMessage} className={styles.send} aria-label="send">➤</button>
+            <button disabled={!user || !input.trim()} onClick={sendMessage} className={styles.send} aria-label="send">➤</button>
         </div>
       </div>
     </div>
