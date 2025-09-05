@@ -1,32 +1,31 @@
 const API_BASE = "/api";
 
-async function post(path, body, opts = {}) {
+async function request(path, method, body, opts = {}) {
   const res = await fetch(`${API_BASE}${path}`, {
-    method: "POST",
+    method,
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      ...opts.headers,
     },
-    body: JSON.stringify(body),
+    body: body ? JSON.stringify(body) : undefined,
     ...opts,
   });
+
+  // For DELETE requests, we might not get a JSON body back on success
+  if (res.status === 204 || res.status === 200 && res.headers.get('content-length') === '0') {
+    return null; // Or return { success: true } if you prefer
+  }
 
   const data = await res.json().catch(() => null);
   if (!res.ok) throw data || { message: "Network error" };
   return data;
 }
 
-// Added a 'get' method for making GET requests to the backend
-async function get(path, opts = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: "GET",
-    credentials: "include",
-    ...opts,
-  });
+const post = (path, body, opts) => request(path, "POST", body, opts);
+const get = (path, opts) => request(path, "GET", undefined, opts);
+const put = (path, body, opts) => request(path, "PUT", body, opts);
+const del = (path, opts) => request(path, "DELETE", undefined, opts);
 
-  const data = await res.json().catch(() => null);
-  if (!res.ok) throw data || { message: "Network error" };
-  return data;
-}
 
-export default { post, get };
+export default { post, get, put, del };

@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { io } from 'socket.io-client';
-import Logo from '/src/assets/logo.svg';
-import styles from '/src/pages/Chat.module.css';
-import api from '/src/api.js';
+import Logo from '../assets/logo.svg';
+import styles from './Chat.module.css';
+import api from '../api.js';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'; // A nice dark theme for code
@@ -46,8 +46,12 @@ const Chat = ({ theme, toggleTheme, user }) => {
   const [chats, setChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
+  const [editingChatId, setEditingChatId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState('');
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const editInputRef = useRef(null);
+
 
   // Function to smoothly scroll to the latest message
   const scrollToBottom = () => {
@@ -55,6 +59,13 @@ const Chat = ({ theme, toggleTheme, user }) => {
   };
 
   useEffect(scrollToBottom, [messages]);
+  
+  // Focus input when editing starts
+  useEffect(() => {
+    if (editingChatId && editInputRef.current) {
+        editInputRef.current.focus();
+    }
+  }, [editingChatId]);
 
   // Main effect to handle user login, history fetching, and socket connection
   useEffect(() => {
@@ -91,7 +102,7 @@ const Chat = ({ theme, toggleTheme, user }) => {
 
   // Function to switch to a different chat
   const selectChat = async (chatId) => {
-    if (activeChatId === chatId) return;
+    if (activeChatId === chatId || editingChatId === chatId) return;
     try {
       const fetchedMessages = await api.get(`/chat/${chatId}/messages`);
       const formattedMessages = fetchedMessages.map(msg => ({
@@ -121,6 +132,46 @@ const Chat = ({ theme, toggleTheme, user }) => {
     }
   };
 
+    // Function to delete a chat
+    const handleDeleteChat = async (chatIdToDelete) => {
+        try {
+            await api.del(`/chat/${chatIdToDelete}`);
+            const updatedChats = chats.filter(chat => chat._id !== chatIdToDelete);
+            setChats(updatedChats);
+
+            if (activeChatId === chatIdToDelete) {
+                if (updatedChats.length > 0) {
+                    selectChat(updatedChats[0]._id);
+                } else {
+                    createNewChat();
+                }
+            }
+        } catch (error) {
+            console.error("Failed to delete chat", error);
+        }
+    };
+
+    // Function to handle starting the edit process
+    const handleStartEditing = (chat) => {
+        setEditingChatId(chat._id);
+        setEditingTitle(chat.title);
+    };
+
+    // Function to save the new title
+    const handleSaveTitle = async (chatId) => {
+        if (!editingTitle.trim()) return; // Don't save empty titles
+        try {
+            const updatedChat = await api.put(`/chat/${chatId}`, { title: editingTitle });
+            setChats(chats.map(c => c._id === chatId ? updatedChat.chat : c));
+        } catch (error) {
+            console.error("Failed to update chat title", error);
+        } finally {
+            setEditingChatId(null);
+            setEditingTitle('');
+        }
+    };
+
+
   // Function to send a message
   const sendMessage = () => {
     if (!input.trim() || !activeChatId || !user) return;
@@ -144,15 +195,42 @@ const Chat = ({ theme, toggleTheme, user }) => {
         <aside className={styles.historyNav}>
             <button onClick={createNewChat} className={styles.newChatBtn}>+ New Chat</button>
             <nav className={styles.historyList}>
-                {chats.map(chat => (
-                    <div 
-                        key={chat._id} 
-                        className={`${styles.historyItem} ${chat._id === activeChatId ? styles.active : ''}`}
-                        onClick={() => selectChat(chat._id)}
-                    >
-                        {chat.title}
-                    </div>
-                ))}
+            {chats.map(chat => (
+                <div 
+                    key={chat._id} 
+                    className={`${styles.historyItem} ${chat._id === activeChatId ? styles.active : ''}`}
+                    onClick={() => selectChat(chat._id)}
+                    onDoubleClick={() => handleStartEditing(chat)}
+                >
+                    {editingChatId === chat._id ? (
+                        <input
+                            ref={editInputRef}
+                            type="text"
+                            value={editingTitle}
+                            onChange={(e) => setEditingTitle(e.target.value)}
+                            onBlur={() => handleSaveTitle(chat._id)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveTitle(chat._id);
+                                if (e.key === 'Escape') setEditingChatId(null);
+                            }}
+                            className={styles.titleInput}
+                        />
+                    ) : (
+                        <>
+                            <span className={styles.titleText}>{chat.title}</span>
+                            <button 
+                                className={styles.deleteBtn}
+                                onClick={(e) => {
+                                    e.stopPropagation(); // Prevent selectChat from firing
+                                    handleDeleteChat(chat._id);
+                                }}
+                            >
+                                &#x1F5D1; {/* Trash can icon */}
+                            </button>
+                        </>
+                    )}
+                </div>
+            ))}
             </nav>
         </aside>
       )}
@@ -215,3 +293,4 @@ const Chat = ({ theme, toggleTheme, user }) => {
 };
 
 export default Chat;
+

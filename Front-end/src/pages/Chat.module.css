@@ -55,6 +55,9 @@
 }
 
 .historyItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 10px;
   border-radius: 6px;
   cursor: pointer;
@@ -63,6 +66,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   color: #a0aec0;
+  gap: 8px;
 }
 
 .historyItem:hover {
@@ -73,6 +77,48 @@
   background-color: #2563eb;
   color: white;
   font-weight: 600;
+}
+
+.historyItem .titleText {
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* New styles for delete button and edit input */
+.deleteBtn {
+  background: none;
+  border: none;
+  color: #a0aec0;
+  cursor: pointer;
+  visibility: hidden; /* Hide by default */
+  opacity: 0;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  font-size: 16px;
+  padding: 4px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.historyItem:hover .deleteBtn {
+  visibility: visible; /* Show on hover */
+  opacity: 1;
+}
+
+.deleteBtn:hover {
+  color: #ef4444; /* Red color on hover */
+}
+
+.titleInput {
+  background-color: #1e293b;
+  border: 1px solid #3b82f6;
+  color: white;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Mobile Menu Toggle Button */
