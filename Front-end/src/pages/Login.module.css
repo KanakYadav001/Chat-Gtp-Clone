@@ -25,12 +25,6 @@
   margin-bottom: 24px;
 }
 
-.logo {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 16px;
-}
-
 .title {
   font-size: 24px;
   font-weight: 700;
@@ -62,7 +56,7 @@
 }
 
 .input {
-  padding: 12px 14px;
+  padding: 12px 18px;
   border-radius: 8px;
   border: 1px solid var(--border-dark);
   background: #0f1720;

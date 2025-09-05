@@ -25,11 +25,6 @@
   margin-bottom: 24px;
 }
 
-.logo {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 16px;
-}
 
 .title {
   font-size: 24px;
@@ -51,8 +46,17 @@
 
 .fieldGroup {
   display: flex;
+  flex-direction: column; /* Stack fields vertically on mobile */
   gap: 16px;
 }
+
+/* On larger screens, display fields side-by-side */
+@media (min-width: 500px) {
+  .fieldGroup {
+    flex-direction: row;
+  }
+}
+
 
 .fieldGroup .field {
   flex: 1;
@@ -71,7 +75,7 @@
 }
 
 .input {
-  padding: 12px 14px;
+  padding: 12px 3px;
   border-radius: 8px;
   border: 1px solid var(--border-dark);
   background: #0f1720;
@@ -140,3 +144,4 @@
 .footer a:hover {
   text-decoration: underline;
 }
+

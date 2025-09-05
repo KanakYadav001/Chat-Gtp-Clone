@@ -36,9 +36,7 @@ const Register = ({ onAuthSuccess }) => {
     <div className={styles.container}>
       <div className={styles.card}>
         <div className={styles.header}>
-          <img src={Logo} alt="App Logo" className={styles.logo} />
           <h2 className={styles.title}>Create an account</h2>
-          <p className={styles.subtitle}>Start your journey with us today.</p>
         </div>
 
         <form className={styles.form} onSubmit={handleRegister}>
