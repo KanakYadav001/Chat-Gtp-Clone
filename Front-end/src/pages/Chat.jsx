@@ -51,8 +51,6 @@ const Chat = ({ theme, toggleTheme, user }) => {
   const messagesEndRef = useRef(null);
   const editInputRef = useRef(null);
   
-  // Create a ref to hold the current active chat ID.
-  // This helps the socket listener access the latest ID without re-registering.
   const activeChatIdRef = useRef(activeChatId);
 
   const scrollToBottom = () => {
@@ -67,7 +65,6 @@ const Chat = ({ theme, toggleTheme, user }) => {
     }
   }, [editingChatId]);
 
-  // Sync the activeChatId state with its ref whenever it changes.
   useEffect(() => {
     activeChatIdRef.current = activeChatId;
   }, [activeChatId]);
@@ -96,7 +93,6 @@ const Chat = ({ theme, toggleTheme, user }) => {
 
     s.on('connect_error', (err) => console.error('socket connect error', err));
     
-    // Use the ref inside the listener to ensure it always has the current chat ID.
     s.on('ai-response', (payload) => {
       if (payload && payload.content && payload.chat === activeChatIdRef.current) {
         setMessages(prev => [...prev.filter(m => m.id !== 'thinking'), { id: `r${Date.now()}`, from: 'ai', text: payload.content }]);
@@ -115,7 +111,7 @@ const Chat = ({ theme, toggleTheme, user }) => {
   const selectChat = async (chatId) => {
     if (activeChatId === chatId || editingChatId === chatId) return;
     try {
-      const fetchedMessages = await api.get(`/chat/${chatId}/messages`);
+      const fetchedMessages = await api.get(`/api/chat/${chatId}/messages`);
       const formattedMessages = fetchedMessages.map(msg => ({
         id: msg._id,
         from: msg.role === 'user' ? 'user' : 'ai',
@@ -133,7 +129,7 @@ const Chat = ({ theme, toggleTheme, user }) => {
     if (isCreatingChat) return;
     setIsCreatingChat(true);
     try {
-      const response = await api.post('/chat', { title: 'New Conversation' });
+      const response = await api.post('/api/chat', { title: 'New Conversation' });
       const newChat = response.chat;
       setChats(prev => [newChat, ...prev]);
       setActiveChatId(newChat._id);
@@ -148,7 +144,7 @@ const Chat = ({ theme, toggleTheme, user }) => {
 
     const handleDeleteChat = async (chatIdToDelete) => {
         try {
-            await api.del(`/chat/${chatIdToDelete}`);
+            await api.del(`/api/chat/${chatIdToDelete}`);
             const updatedChats = chats.filter(chat => chat._id !== chatIdToDelete);
             setChats(updatedChats);
 
@@ -176,7 +172,7 @@ const Chat = ({ theme, toggleTheme, user }) => {
             return;
         };
         try {
-            const updatedChat = await api.put(`/chat/${chatId}`, { title: editingTitle });
+            const updatedChat = await api.put(`/api/chat/${chatId}`, { title: editingTitle });
             setChats(chats.map(c => c._id === chatId ? updatedChat.chat : c));
         } catch (error) {
             console.error("Failed to update chat title", error);
@@ -264,9 +260,11 @@ const Chat = ({ theme, toggleTheme, user }) => {
                     {theme === 'dark' ? '🌞' : '🌜'}
                 </button>
                 {user ? (
-                    <div className={styles.userProfile}>
-                        {user.Fullname.firstName.charAt(0)}
-                    </div>
+                    <Link to="/profile">
+                        <div className={styles.userProfile}>
+                            {user.Fullname.firstName.charAt(0)}
+                        </div>
+                    </Link>
                 ) : (
                     <>
                         <Link to="/login" className={styles.authBtn}>Login</Link>
