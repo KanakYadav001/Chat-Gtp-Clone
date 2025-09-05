@@ -1,3 +1,16 @@
+/* Fade-in Animation for AI messages */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
 /* Main Container for the entire app view */
 .container {
   display: flex;
@@ -149,31 +162,51 @@
 }
 
 .logo {
-  width: 74px;
-  height: 44px;
+  width: 34px;
+  height: 34px;
 }
 
 /* Messages Area */
 .messages {
   flex: 1 1 auto;
-  padding: 16px;
+  padding: 16px; /* Adjusted padding */
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 20px; /* Increased gap */
-  max-width: 800px; /* Set a max-width for the conversation */
+  gap: 20px; /* Adjusted gap */
+  max-width: 800px;
   width: 100%;
-  margin: 0 auto; /* Center the message column */
+  margin: 0 auto;
 }
+
+
+/* Custom Scrollbar Styles */
+.messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messages::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 10px;
+  border: 2px solid var(--background);
+}
+
+.messages::-webkit-scrollbar-thumb:hover {
+  background-color: var(--history-text);
+}
+
 
 .message {
   display: flex;
   max-width: 100%;
-  align-items: flex-start; /* Align to the top */
-  gap: 12px; /* Gap between avatar and bubble */
+  align-items: flex-start;
+  gap: 12px;
 }
 
-/* Add a generic avatar style */
 .message::before {
   content: '';
   width: 32px;
@@ -185,27 +218,23 @@
   background-position: center;
 }
 
-/* Style the AI avatar (using your logo) */
 .ai::before {
-   background-image: url('../assets/logo.svg'); /* Corrected path */
+   background-image: url('../assets/logo.svg');
    background-color: #111827;
 }
 
-/* Style the User avatar */
 .user::before {
-   /* You can use a generic user icon or a background color */
    background-color: #3b82f6;
-   /* You could also add a user icon font or SVG here */
 }
 
 .user {
-  flex-direction: row-reverse; /* Flip the user message layout */
+  flex-direction: row-reverse;
 }
 
 .bubble {
-  padding: 12px 16px;
+  padding: 12px 16px; /* Adjusted padding */
   border-radius: 12px;
-  max-width: 90%; /* Let bubble take more space */
+  max-width: 90%;
   font-size: 15px;
   line-height: 1.6;
   word-wrap: break-word;
@@ -216,6 +245,7 @@
   color: var(--bubble-ai-text);
   border: 1px solid var(--border-color);
   border-top-left-radius: 4px;
+  animation: fadeIn 0.4s ease-out; /* Apply fade-in animation */
 }
 
 .user .bubble {
@@ -244,13 +274,13 @@
   color: var(--text-color);
   border: 1px solid var(--border-color);
   padding: 12px 16px;
-  border-radius: 16px; /* A slightly smaller radius can look cleaner */
+  border-radius: 16px;
   outline: none;
   font-size: 15px;
-  font-family: inherit; /* Ensure it uses the same font */
+  font-family: inherit;
   line-height: 1.5;
-  max-height: 200px; /* Prevent it from growing indefinitely */
-  overflow-y: auto; /* Add a scrollbar if it gets too tall */
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .send {
@@ -271,7 +301,6 @@
   cursor: not-allowed;
 }
 
-/* Auth Buttons and Profile Icon */
 .authBtn, .authBtnPrimary {
   padding: 6px 12px;
   border-radius: 8px;
@@ -301,7 +330,6 @@
   font-size: 24px;
 }
 
-/* --- Mobile-First Responsive Styles --- */
 @media (max-width: 768px) {
   .historyNav {
     position: absolute;
@@ -313,16 +341,16 @@
     height: 100%;
   }
 
-  /* When history is visible, slide it in */
   .container.historyVisible .historyNav {
     transform: translateX(0);
   }
 
   .historyToggle {
-    display: block; /* Show menu toggle on mobile */
+    display: block;
   }
 
   .messages {
     padding: 12px;
   }
 }
+
