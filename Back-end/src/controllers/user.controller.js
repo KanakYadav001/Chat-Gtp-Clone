@@ -1,7 +1,6 @@
 const UserModel = require('../models/user.model')
 const becrypt = require('bcryptjs')
 const jwt  = require('jsonwebtoken')
-const cookie = require('cookie-parser')
 
 async function registerUser(req,res) {
     const {fullName : {firstName , lastName},email ,password} = req.body;
@@ -14,7 +13,7 @@ async function registerUser(req,res) {
 
      if(userAlreadyExits){
         return res.status(400).json({
-            message : "User Already Exits"
+            message : "User with this email already exists"
         })
     }
 
@@ -33,9 +32,9 @@ async function registerUser(req,res) {
     const token = jwt.sign({id:user._id},process.env.JWT_SECRET)
 
     res.cookie("token",token, {
-        httpOnly: true, // Makes the cookie inaccessible to client-side scripts
-        secure: process.env.NODE_ENV === 'production', // Only send over HTTPS in production
-        sameSite: 'strict', // Protects against CSRF attacks
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
     });
 
 
@@ -47,8 +46,6 @@ async function registerUser(req,res) {
            Fullname : user.fullName
         }
     })
-
-   
 }
 
 async function UserLogin(req,res){
@@ -59,7 +56,7 @@ async function UserLogin(req,res){
     })
 
     if(!user){
-       return res.status(401).json({
+       return res.status(400).json({
             message : "Invalid Email Or Password"
         })
     }
@@ -67,8 +64,8 @@ async function UserLogin(req,res){
 
 
     if(!isPassword){
-       return res.status(401).json({
-            message : "Invalid Email Or Password"
+       return res.status(400).json({
+            message : "Invalid Emial Or Password"
         })
     }
 
@@ -76,7 +73,7 @@ async function UserLogin(req,res){
     res.cookie('token',token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'strict'
     })
 
     
@@ -90,23 +87,26 @@ async function UserLogin(req,res){
     })
 }
 
-// New function to get the currently authenticated user
-async function getMe(req, res) {
-    if (!req.user) {
-        return res.status(401).json({ message: "Not authenticated" });
-    }
+async function checkSession(req, res) {
     res.status(200).json({
-        user: {
-            email: req.user.email,
-            _id: req.user._id,
-            Fullname: req.user.fullName
-        }
+      message: "Session is active",
+      user: {
+        email: req.user.email,
+        _id: req.user._id,
+        Fullname: req.user.fullName,
+      },
     });
+}
+
+async function logoutUser(req, res) {
+    res.clearCookie('token');
+    res.status(200).json({ message: "User logged out successfully" });
 }
 
 
 module.exports = {
     registerUser,
     UserLogin,
-    getMe
+    checkSession,
+    logoutUser
 }

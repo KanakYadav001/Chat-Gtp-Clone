@@ -169,11 +169,11 @@
 /* Messages Area */
 .messages {
   flex: 1 1 auto;
-  padding: 16px; /* Adjusted padding */
+  padding: 16px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 20px; /* Adjusted gap */
+  gap: 16px; /* Reduced gap for tighter message spacing */
   max-width: 800px;
   width: 100%;
   margin: 0 auto;
@@ -232,11 +232,11 @@
 }
 
 .bubble {
-  padding: 12px 16px; /* Adjusted padding */
+  padding: 10px 14px; /* Reduced padding for a more compact look */
   border-radius: 12px;
   max-width: 90%;
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.5; /* Slightly reduced line-height */
   word-wrap: break-word;
 }
 
@@ -245,7 +245,7 @@
   color: var(--bubble-ai-text);
   border: 1px solid var(--border-color);
   border-top-left-radius: 4px;
-  animation: fadeIn 0.4s ease-out; /* Apply fade-in animation */
+  animation: fadeIn 0.4s ease-out;
 }
 
 .user .bubble {
@@ -320,6 +320,7 @@
   justify-content: center;
   font-weight: 600;
   font-size: 16px;
+  text-decoration: none; /* Added to remove underline from Link */
 }
 
 .themeToggle {
@@ -353,4 +354,3 @@
     padding: 12px;
   }
 }
-

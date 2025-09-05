@@ -1,0 +1,118 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  background-color: var(--background);
+  color: var(--text-color);
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+.card {
+  width: 100%;
+  max-width: 450px;
+  background-color: var(--history-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.backButton {
+  position: absolute;
+  top: 0;
+  left: 0;
+  text-decoration: none;
+  color: var(--history-text);
+  font-size: 14px;
+}
+.backButton:hover {
+  text-decoration: underline;
+}
+
+.avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #60a5fa, #3b82f6);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 40px;
+  margin: 20px auto 16px;
+  border: 4px solid var(--background);
+}
+
+.fullName {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-color);
+}
+
+.email {
+  font-size: 15px;
+  color: var(--history-text);
+  margin-top: 4px;
+}
+
+.userInfo {
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px 0;
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.infoItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+}
+
+.label {
+    color: var(--history-text);
+    font-weight: 500;
+}
+
+.value {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.actions {
+  display: flex;
+}
+
+.logoutButton {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ef4444;
+  background-color: transparent;
+  color: #ef4444;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.logoutButton:hover {
+  background-color: #ef4444;
+  color: white;
+}
+
