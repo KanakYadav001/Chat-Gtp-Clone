@@ -50,8 +50,10 @@ const Chat = ({ theme, toggleTheme, user }) => {
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
   const editInputRef = useRef(null);
-  
   const activeChatIdRef = useRef(activeChatId);
+  
+  // ADDED: Ref to manage single vs. double click
+  const clickTimeoutRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -68,50 +70,56 @@ const Chat = ({ theme, toggleTheme, user }) => {
   useEffect(() => {
     activeChatIdRef.current = activeChatId;
   }, [activeChatId]);
-
+  
+  // CONSOLIDATED: Logic to fetch history and create new chat is now in one place
   useEffect(() => {
-    if (user) {
-      api.get('/chat/history') // CORRECTED
-        .then(data => {
-          setChats(data);
-          if (data.length > 0) {
+    const setupChat = async () => {
+      if (user) {
+        try {
+          const data = await api.get('/chat/history');
+          if (data && data.length > 0) {
+            setChats(data);
             selectChat(data[0]._id);
-          } else if (!isCreatingChat) {
+          } else {
+            // If no chats exist, create one automatically
             createNewChat();
           }
-        })
-        .catch(err => {
-          console.error('Failed to fetch chat history', err);
-          if (!isCreatingChat) createNewChat();
-        });
-    } else {
-      setMessages([{ id: 's1', from: 'ai', text: 'Hello! Please log in to start chatting and save your history.' }]);
-    }
+        } catch (err) {
+          console.error('Failed to fetch chat history, creating a new chat.', err);
+          createNewChat();
+        }
+      } else {
+        // Reset state for logged-out users
+        setChats([]);
+        setActiveChatId(null);
+        setMessages([{ id: 's1', from: 'ai', text: 'Hello! Please log in to start chatting and save your history.' }]);
+      }
+    };
+
+    setupChat();
 
     const s = io({ withCredentials: true });
     socketRef.current = s;
-
     s.on('connect_error', (err) => console.error('socket connect error', err));
-    
     s.on('ai-response', (payload) => {
       if (payload && payload.content && payload.chat === activeChatIdRef.current) {
         setMessages(prev => [...prev.filter(m => m.id !== 'thinking'), { id: `r${Date.now()}`, from: 'ai', text: payload.content }]);
       }
     });
 
-    return () => s.disconnect();
+    return () => {
+      s.disconnect();
+      // Clear any pending click timeouts
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current);
+      }
+    };
   }, [user]);
-
-  useEffect(() => {
-    if (user && chats.length === 0 && !isCreatingChat) {
-      createNewChat();
-    }
-  }, [user, chats, isCreatingChat]);
 
   const selectChat = async (chatId) => {
     if (activeChatId === chatId || editingChatId === chatId) return;
     try {
-      const fetchedMessages = await api.get(`/chat/${chatId}/messages`); // CORRECTED
+      const fetchedMessages = await api.get(`/chat/${chatId}/messages`);
       const formattedMessages = fetchedMessages.map(msg => ({
         id: msg._id,
         from: msg.role === 'user' ? 'user' : 'ai',
@@ -129,7 +137,7 @@ const Chat = ({ theme, toggleTheme, user }) => {
     if (isCreatingChat) return;
     setIsCreatingChat(true);
     try {
-      const response = await api.post('/chat', { title: 'New Conversation' }); // CORRECTED
+      const response = await api.post('/chat', { title: 'New Conversation' });
       const newChat = response.chat;
       setChats(prev => [newChat, ...prev]);
       setActiveChatId(newChat._id);
@@ -144,7 +152,7 @@ const Chat = ({ theme, toggleTheme, user }) => {
 
     const handleDeleteChat = async (chatIdToDelete) => {
         try {
-            await api.del(`/chat/${chatIdToDelete}`); // CORRECTED
+            await api.del(`/chat/${chatIdToDelete}`);
             const updatedChats = chats.filter(chat => chat._id !== chatIdToDelete);
             setChats(updatedChats);
 
@@ -152,8 +160,7 @@ const Chat = ({ theme, toggleTheme, user }) => {
                 if (updatedChats.length > 0) {
                     selectChat(updatedChats[0]._id);
                 } else {
-                    setActiveChatId(null);
-                    setMessages([]);
+                   createNewChat();
                 }
             }
         } catch (error) {
@@ -172,7 +179,7 @@ const Chat = ({ theme, toggleTheme, user }) => {
             return;
         };
         try {
-            const updatedChat = await api.put(`/chat/${chatId}`, { title: editingTitle }); // CORRECTED
+            const updatedChat = await api.put(`/chat/${chatId}`, { title: editingTitle });
             setChats(chats.map(c => c._id === chatId ? updatedChat.chat : c));
         } catch (error) {
             console.error("Failed to update chat title", error);
@@ -180,6 +187,22 @@ const Chat = ({ theme, toggleTheme, user }) => {
             setEditingChatId(null);
             setEditingTitle('');
         }
+    };
+    
+    // ADDED: New handler to manage single and double clicks
+    const handleHistoryItemClick = (chat) => {
+      clearTimeout(clickTimeoutRef.current);
+      if (!clickTimeoutRef.current) {
+        // This is a single click
+        clickTimeoutRef.current = setTimeout(() => {
+          selectChat(chat._id);
+          clickTimeoutRef.current = null;
+        }, 250); // 250ms delay
+      } else {
+        // This is a double click
+        clickTimeoutRef.current = null;
+        handleStartEditing(chat);
+      }
     };
 
   const sendMessage = () => {
@@ -208,8 +231,7 @@ const Chat = ({ theme, toggleTheme, user }) => {
                 <div 
                     key={chat._id} 
                     className={`${styles.historyItem} ${chat._id === activeChatId ? styles.active : ''}`}
-                    onClick={() => selectChat(chat._id)}
-                    onDoubleClick={() => handleStartEditing(chat)}
+                    onClick={() => handleHistoryItemClick(chat)} // CHANGED
                 >
                     {editingChatId === chat._id ? (
                         <input
