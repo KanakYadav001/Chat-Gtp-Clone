@@ -10,21 +10,37 @@ html, body, #root {
 /* --- Keep the rest of your CSS below --- */
 
 :root {
+  /* Dark Theme Variables */
   --background-dark: #0f1720;
-  --text-dark: #fff;
+  --text-dark: #e2e8f0;
   --header-bg-dark: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
-  --border-dark: rgba(255,255,255,0.03);
-  --bubble-ai-bg-dark: #111827;
+  --border-dark: rgba(255,255,255,0.07);
+  --bubble-ai-bg-dark: #1e293b;
   --bubble-ai-text-dark: #e5e7eb;
   --input-bg-dark: #0b1220;
+  --history-bg-dark: #0b1220;
+  --history-text-dark: #94a3b8;
+  --history-hover-bg-dark: rgba(255, 255, 255, 0.05);
+  --history-active-bg-dark: #2563eb;
+  --history-active-text-dark: #ffffff;
+  --title-input-bg-dark: #1e293b;
+  --title-input-border-dark: #3b82f6;
 
-  --background-light: #f0f2f5;
-  --text-light: #000;
-  --header-bg-light: #fff;
-  --border-light: #ddd;
-  --bubble-ai-bg-light: #e4e6eb;
-  --bubble-ai-text-light: #000;
-  --input-bg-light: #fff;
+  /* Light Theme Variables */
+  --background-light: #f1f5f9;
+  --text-light: #ffffff;
+  --header-bg-light: #ffffff;
+  --border-light: #e2e8f0;
+  --bubble-ai-bg-light: #ffffff;
+  --bubble-ai-text-light: #050505;
+  --input-bg-light: #ffffff;
+  --history-bg-light: #e2e8f0;
+  --history-text-light: #475569;
+  --history-hover-bg-light: #cbd5e1;
+  --history-active-bg-light: #2563eb;
+  --history-active-text-light: #ffffff;
+  --title-input-bg-light: #ffffff;
+  --title-input-border-light: #3b82f6;
 }
 
 .dark-theme {
@@ -35,6 +51,13 @@ html, body, #root {
   --bubble-ai-bg: var(--bubble-ai-bg-dark);
   --bubble-ai-text: var(--bubble-ai-text-dark);
   --input-bg: var(--input-bg-dark);
+  --history-bg: var(--history-bg-dark);
+  --history-text: var(--history-text-dark);
+  --history-hover-bg: var(--history-hover-bg-dark);
+  --history-active-bg: var(--history-active-bg-dark);
+  --history-active-text: var(--history-active-text-dark);
+  --title-input-bg: var(--title-input-bg-dark);
+  --title-input-border: var(--title-input-border-dark);
 }
 
 .light-theme {
@@ -45,6 +68,13 @@ html, body, #root {
   --bubble-ai-bg: var(--bubble-ai-bg-light);
   --bubble-ai-text: var(--bubble-ai-text-light);
   --input-bg: var(--input-bg-light);
+  --history-bg: var(--history-bg-light);
+  --history-text: var(--history-text-light);
+  --history-hover-bg: var(--history-hover-bg-light);
+  --history-active-bg: var(--history-active-bg-light);
+  --history-active-text: var(--history-active-text-light);
+  --title-input-bg: var(--title-input-bg-light);
+  --title-input-border: var(--title-input-border-light);
 }
 
 .app-container {
