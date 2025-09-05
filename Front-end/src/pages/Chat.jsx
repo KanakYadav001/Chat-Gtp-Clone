@@ -71,7 +71,7 @@ const Chat = ({ theme, toggleTheme, user }) => {
 
   useEffect(() => {
     if (user) {
-      api.get('/api/chat/history')
+      api.get('/chat/history') // CORRECTED
         .then(data => {
           setChats(data);
           if (data.length > 0) {
@@ -111,7 +111,7 @@ const Chat = ({ theme, toggleTheme, user }) => {
   const selectChat = async (chatId) => {
     if (activeChatId === chatId || editingChatId === chatId) return;
     try {
-      const fetchedMessages = await api.get(`/api/chat/${chatId}/messages`);
+      const fetchedMessages = await api.get(`/chat/${chatId}/messages`); // CORRECTED
       const formattedMessages = fetchedMessages.map(msg => ({
         id: msg._id,
         from: msg.role === 'user' ? 'user' : 'ai',
@@ -129,7 +129,7 @@ const Chat = ({ theme, toggleTheme, user }) => {
     if (isCreatingChat) return;
     setIsCreatingChat(true);
     try {
-      const response = await api.post('/api/chat', { title: 'New Conversation' });
+      const response = await api.post('/chat', { title: 'New Conversation' }); // CORRECTED
       const newChat = response.chat;
       setChats(prev => [newChat, ...prev]);
       setActiveChatId(newChat._id);
@@ -144,7 +144,7 @@ const Chat = ({ theme, toggleTheme, user }) => {
 
     const handleDeleteChat = async (chatIdToDelete) => {
         try {
-            await api.del(`/api/chat/${chatIdToDelete}`);
+            await api.del(`/chat/${chatIdToDelete}`); // CORRECTED
             const updatedChats = chats.filter(chat => chat._id !== chatIdToDelete);
             setChats(updatedChats);
 
@@ -172,7 +172,7 @@ const Chat = ({ theme, toggleTheme, user }) => {
             return;
         };
         try {
-            const updatedChat = await api.put(`/api/chat/${chatId}`, { title: editingTitle });
+            const updatedChat = await api.put(`/chat/${chatId}`, { title: editingTitle }); // CORRECTED
             setChats(chats.map(c => c._id === chatId ? updatedChat.chat : c));
         } catch (error) {
             console.error("Failed to update chat title", error);
