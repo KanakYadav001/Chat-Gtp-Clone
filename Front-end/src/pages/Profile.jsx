@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import styles from './Profile.module.css';
+import styles from './Profile.css'; // Corrected import
 import api from '../api.js';
 
 const Profile = ({ user, onAuthSuccess }) => {
@@ -68,4 +68,3 @@ const Profile = ({ user, onAuthSuccess }) => {
 };
 
 export default Profile;
-

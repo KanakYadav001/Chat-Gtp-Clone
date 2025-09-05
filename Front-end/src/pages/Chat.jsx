@@ -74,7 +74,7 @@ const Chat = ({ theme, toggleTheme, user }) => {
 
   useEffect(() => {
     if (user) {
-      api.get('/chat/history')
+      api.get('/api/chat/history')
         .then(data => {
           setChats(data);
           if (data.length > 0) {
@@ -306,4 +306,3 @@ const Chat = ({ theme, toggleTheme, user }) => {
 };
 
 export default Chat;
-

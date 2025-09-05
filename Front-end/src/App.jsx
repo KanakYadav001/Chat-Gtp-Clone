@@ -12,7 +12,7 @@ function App() {
     // Check for an active session when the app loads
     const checkSession = async () => {
       try {
-        const data = await api.get('/auth/me');
+        const data = await api.get('/auth/session');
         if (data && data.user) {
           setUser(data.user);
         }
