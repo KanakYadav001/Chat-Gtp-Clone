@@ -21,7 +21,7 @@
 
 /* History Sidebar */
 .historyNav {
-  background: #0b1220;
+  background: var(--history-bg);
   width: 260px;
   flex-shrink: 0;
   border-right: 1px solid var(--border-color);
@@ -29,7 +29,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  transition: transform 0.3s ease-in-out;
+  transition: transform 0.3s ease-in-out, background-color 0.3s ease;
 }
 
 .newChatBtn {
@@ -46,7 +46,7 @@
 }
 
 .newChatBtn:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--history-hover-bg);
 }
 
 .historyList {
@@ -65,17 +65,17 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #a0aec0;
+  color: var(--history-text);
   gap: 8px;
 }
 
 .historyItem:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--history-hover-bg);
 }
 
 .historyItem.active {
-  background-color: #2563eb;
-  color: white;
+  background-color: var(--history-active-bg);
+  color: var(--history-active-text);
   font-weight: 600;
 }
 
@@ -90,7 +90,7 @@
 .deleteBtn {
   background: none;
   border: none;
-  color: #a0aec0;
+  color: var(--history-text);
   cursor: pointer;
   visibility: hidden; /* Hide by default */
   opacity: 0;
@@ -111,9 +111,9 @@
 }
 
 .titleInput {
-  background-color: #1e293b;
-  border: 1px solid #3b82f6;
-  color: white;
+  background-color: var(--title-input-bg);
+  border: 1px solid var(--title-input-border);
+  color: var(--text-color);
   padding: 6px 8px;
   border-radius: 4px;
   font-size: 14px;
@@ -187,7 +187,7 @@
 
 /* Style the AI avatar (using your logo) */
 .ai::before {
-   background-image: url('/src/assets/logo.svg'); /* You can use your logo here */
+   background-image: url('../assets/logo.svg'); /* Corrected path */
    background-color: #111827;
 }
 

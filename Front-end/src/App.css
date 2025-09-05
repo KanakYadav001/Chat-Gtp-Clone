@@ -28,11 +28,11 @@ html, body, #root {
 
   /* Light Theme Variables */
   --background-light: #f1f5f9;
-  --text-light: #ffffff;
+  --text-light: #1e293b; /* CORRECTED: Was white, now a dark slate color */
   --header-bg-light: #ffffff;
   --border-light: #e2e8f0;
   --bubble-ai-bg-light: #ffffff;
-  --bubble-ai-text-light: #050505;
+  --bubble-ai-text-light: #1e293b;
   --input-bg-light: #ffffff;
   --history-bg-light: #e2e8f0;
   --history-text-light: #475569;
